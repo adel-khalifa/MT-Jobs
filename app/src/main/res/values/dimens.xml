@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="default_upper_margin">52dp</dimen>
+    <dimen name="default_content_margin_of_layout">18dp</dimen>
+    <dimen name="medium_space">16sp</dimen>
+    <dimen name="small_space">8dp</dimen>
+</resources>

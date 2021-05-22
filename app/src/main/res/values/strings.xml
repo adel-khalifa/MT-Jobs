@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">MT Jobs</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="welcome_txt">“Welcome to Mega Trust Jobs”</string>
+    <string name="dummy_text_for_test">Lorem Ipsum Is Simply Dummy Text Of The Printing And Typesetting Industry. Lorem Ipsum Has Been The Industry\'s Standard Dummy Text Ever Since The 1500s, When An Unknown Printer Took A Galley Of Type And Scrambled It To Make A Type Specimen Book. It Has Survived Not Only Five Centuries, But Also The Leap Into Electronic Typesetting, Remaining Essentially Unchanged. It Was Popularised In</string>
+    <string name="job_description">Job description :    </string>
+    <string name="company_site">Company site :    </string>
+    <string name="source">Job_source:  </string>
+    <string name="job_search_hint">job title OR company name</string>
+    <string name="start">Start</string>
+
 </resources>
