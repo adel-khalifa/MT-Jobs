@@ -7,5 +7,6 @@
     <string name="source">Job_source:  </string>
     <string name="job_search_hint">job title OR company name</string>
     <string name="start">Start</string>
+    <string name="no_connection">Check Your Internet connection</string>
 
 </resources>

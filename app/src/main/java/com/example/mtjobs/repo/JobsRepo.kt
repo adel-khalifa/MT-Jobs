@@ -5,6 +5,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
+import com.example.mtjobs.R
 import com.example.mtjobs.data.local.JobsDao
 import com.example.mtjobs.data.models.JobsResponseItem
 import com.example.mtjobs.data.remote.JobsApi
@@ -16,7 +18,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
 interface JobsRepo {
-    suspend fun reloadJobs()
+    suspend fun forceRefreshLocalData()
 }
 
 class JobsRepoImpl(
@@ -25,21 +27,24 @@ class JobsRepoImpl(
     private val dao: JobsDao
 ) : JobsRepo {
 
-private var localData : List<JobsResponseItem> = listOf()
-    suspend fun getAllJobsFromCash(): Flow<List<JobsResponseItem>> {
+    val localeJobsWithStatus: MutableLiveData<NetworkState<List<JobsResponseItem>>> =
+        MutableLiveData()
+
+    private suspend fun getAllJobsFromCash(): Flow<List<JobsResponseItem>> {
         return withContext(Dispatchers.IO) {
-             localData = dao.findAll()
+           val  localData = dao.findAll()
             flow { emit(localData) }
 
         }
     }
 
-    override suspend fun reloadJobs() {
+    override suspend fun forceRefreshLocalData() {
         Log.i("TAG", "reloadJobs: started")
 
         if (isConnected()) {
-            Log.i("TAG", "reloadJobs: isConnected")
 
+            Log.i("TAG", "reloadJobs: isConnected")
+            localeJobsWithStatus.value=NetworkState.OnLoading()
             try {
 
                 val response = api.getJobs()
@@ -47,37 +52,42 @@ private var localData : List<JobsResponseItem> = listOf()
                     Log.i("TAG", "reloadJobs: isSuccessful")
 
                     //cash into SQL
-                    response.body()?.let {
+                    response.body()?.let { jobsList ->
                         withContext(Dispatchers.IO) {
-                            dao.add(it.toList())
+
+                            // TODO try without casting the iterator
+                            dao.add(jobsList.toList())
+
                             Log.i("TAG", "reloadJobs: add to DB")
 
+                            getAllJobsFromCash().collect { cashedJobs ->
+                                localeJobsWithStatus.postValue(NetworkState.OnSuccess(cashedJobs))
+                            }
                         }
                     }
-
-//                    getAllJobsFromCash().collect {
-//                         NetworkState.OnSuccess(it)
-//                    }
-                    // collected
-
                 } else {
+                    localeJobsWithStatus.postValue(NetworkState.OnFailure(response.message()))
                     Log.i("TAG", "reloadJobs: response ******UnSuccessful*****")
-                    return
                 }
             } catch (e: Exception) {
                 Log.i("TAG", "reloadJobs: ******** Exception ******${e.message}")
+                localeJobsWithStatus.postValue(NetworkState.OnFailure(e.message.toString()))
+
             }
+        } else {
+            //check in db if the data exists
+            val data = getAllJobsFromCash().collect { cashedData ->
+                if (cashedData.isEmpty()) {
+                    localeJobsWithStatus.postValue(NetworkState.OnFailure(context.getString(R.string.no_connection)))
+
+                } else {
+                    localeJobsWithStatus.postValue(NetworkState.OnSuccess(cashedData))
+
+                }
+            }
+
+
         }
-//        else {
-//            //check in db if the data exists
-//            val data = getAllJobsFromCash()
-//            return if (data.isNotEmpty()) {
-//                Log.d(TAG, "from db")
-//                AppResult.Success(data)
-//            } else
-//            //no network
-//                context.noNetworkConnectivityError()
-//        }
     }
 
     private fun isConnected(): Boolean {

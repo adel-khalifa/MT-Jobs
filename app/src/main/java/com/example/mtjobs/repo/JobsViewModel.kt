@@ -1,28 +1,32 @@
 package com.example.mtjobs.repo
 
 import android.app.Application
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.mtjobs.data.models.JobsResponseItem
 import com.example.mtjobs.utils.NetworkState
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
 
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 class JobsViewModel(app: Application, private val jobsRepo: JobsRepoImpl) : AndroidViewModel(app) {
 
-     var allJobs: MutableLiveData<NetworkState<List<JobsResponseItem>>> = MutableLiveData()
-  //  var updateFavoritesLiveData: MutableLiveData<NetworkState<AuthResponse>> = MutableLiveData()
+    init {
+        viewModelScope.launch {
+            reloadData()
 
-//    fun updateUserFavorites(trackID :String) {
+        }
+    }
+    val cashedJobs: MutableLiveData<NetworkState<List<JobsResponseItem>>> = jobsRepo.localeJobsWithStatus
+
+     fun reloadData() = viewModelScope.launch{ jobsRepo.forceRefreshLocalData() }
+
+
+}
+    //  var updateFavoritesLiveData: MutableLiveData<NetworkState<AuthResponse>> = MutableLiveData()
+
+    //    fun updateUserFavorites(trackID :String) {
 //
 //        viewModelScope.launch {
 //            // force  initial Loading state
@@ -47,13 +51,14 @@ class JobsViewModel(app: Application, private val jobsRepo: JobsRepoImpl) : Andr
 //        }
 //    }
 
-    fun fetchCashedJobsFromDataBase() {
-        viewModelScope.launch {
-            jobsRepo.reloadJobs()
+//    fun fetchCashedJobsFromDataBase() {
+//        viewModelScope.launch {
+//            jobsRepo.forceRefreshLocalData()
+//
+//            jobsRepo.getAllJobsFromCash().collect {
+//                allJobs.postValue(NetworkState.OnSuccess(it))
+//            }
 
-            jobsRepo.getAllJobsFromCash().collect {
-                allJobs.postValue(NetworkState.OnSuccess(it))
-            }
 
 
 //            if (isConnected()) {
@@ -76,9 +81,8 @@ class JobsViewModel(app: Application, private val jobsRepo: JobsRepoImpl) : Andr
 //            else handleNoInternetConnection()
 
 
-
-        }
-    }
+    //    }
+    //}
 
 //    private fun handleNoInternetConnection() {
 //        val noInternetConnectionMessage =
@@ -93,5 +97,4 @@ class JobsViewModel(app: Application, private val jobsRepo: JobsRepoImpl) : Andr
 //    }
 
 
-
-}
+//}
