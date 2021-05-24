@@ -9,16 +9,19 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.mtjobs.R
 import com.example.mtjobs.databinding.FragmentSplashBinding
-import com.example.mtjobs.utils.Constants.SPLASH_DISPLAY_LENGTH
+import com.example.mtjobs.repo.JobsViewModel
+import org.koin.android.viewmodel.ext.android.sharedViewModel
 
 class SplashFragment : Fragment(R.layout.fragment_splash) {
     private lateinit var navController: NavController
-    private lateinit var binding :FragmentSplashBinding
+    private lateinit var binding: FragmentSplashBinding
+    private val jobsViewModel: JobsViewModel by sharedViewModel()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentSplashBinding.bind(view)
         navController = findNavController()
+        jobsViewModel.reloadData()
 
         binding.splashBtnStart.setOnClickListener { _ ->
             navController.let {

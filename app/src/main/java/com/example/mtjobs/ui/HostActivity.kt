@@ -7,7 +7,6 @@ import com.example.mtjobs.repo.JobsViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class HostActivity : AppCompatActivity() {
-    private val jobsViewModel : JobsViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

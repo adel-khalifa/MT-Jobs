@@ -96,7 +96,6 @@ val repositoryModule = module {
 
 val viewModelModule = module {
 
-    // Specific viewModel pattern to tell Koin how to build CountriesViewModel
     viewModel {
         JobsViewModel(app = androidApplication(), jobsRepo = get())
     }

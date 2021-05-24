@@ -4,12 +4,12 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.mtjobs.R
 import com.example.mtjobs.data.local.FavoriteDao
 import com.example.mtjobs.data.local.JobsDao
 import com.example.mtjobs.data.models.FavoriteItem
+import com.example.mtjobs.data.models.JobsResponse
 import com.example.mtjobs.data.models.JobsResponseItem
 import com.example.mtjobs.data.remote.JobsApi
 import com.example.mtjobs.utils.NetworkState
@@ -30,27 +30,24 @@ class JobsRepoImpl(
     private val favoriteDao: FavoriteDao
 ) : JobsRepo {
 
+    val localeJobsWithStatus: MutableLiveData<NetworkState<List<JobsResponseItem>>> =
+        MutableLiveData()
+
     suspend fun addToFavorites(favoriteItem: FavoriteItem) = favoriteDao.addFav(favoriteItem)
 
     suspend fun deleteFromFavorites(favoriteItem: FavoriteItem) =
         favoriteDao.deleteFav(favoriteItem)
 
-    suspend fun allFavoritesFlow(): Flow<List<FavoriteItem>> {
-        return withContext(Dispatchers.IO) {
-            val allFav = favoriteDao.getAllFav()
-            flow { emit(allFav) }
-        }
+    suspend fun favoritesFlow(): Flow<List<FavoriteItem>> = withContext(Dispatchers.IO) {
+        val allFav = favoriteDao.getAllFav()
+        flow { emit(allFav) }
     }
 
 
-    val localeJobsWithStatus: MutableLiveData<NetworkState<List<JobsResponseItem>>> =
-        MutableLiveData()
+    private suspend fun jobsFlow(): Flow<List<JobsResponseItem>> = withContext(Dispatchers.IO) {
+        val localData = jobsDao.findAll()
+        flow { emit(localData) }
 
-    private suspend fun getAllJobsFromCash(): Flow<List<JobsResponseItem>> {
-        return withContext(Dispatchers.IO) {
-            val localData = jobsDao.findAll()
-            flow { emit(localData) }
-        }
     }
 
 
@@ -59,34 +56,40 @@ class JobsRepoImpl(
         if (isConnected()) {
 
             localeJobsWithStatus.value = NetworkState.OnLoading()
+
             try {
-
                 val response = api.getJobs()
-                if (response.isSuccessful) {
+                if (response.isSuccessful) cashResponse(response.body())
+                else setJobStateToFailure(response.message())
 
-                    response.body()?.let { jobsList ->
-                        withContext(Dispatchers.IO) {
-                            jobsDao.add(jobsList)
-                            getAllJobsFromCash().collect { cashedJobs ->
-                                localeJobsWithStatus.postValue(NetworkState.OnSuccess(cashedJobs))
-                            }
-                        }
-                    }
-                } else {
-                    localeJobsWithStatus.postValue(NetworkState.OnFailure(response.message()))
-                }
+
             } catch (e: Exception) {
-                localeJobsWithStatus.postValue(NetworkState.OnFailure(e.message.toString()))
-
+                setJobStateToFailure(e.message.toString())
             }
         } else {
-            getAllJobsFromCash().collect { cashedData ->
-                if (cashedData.isEmpty()) localeJobsWithStatus
-                    .postValue(NetworkState.OnFailure(context.getString(R.string.no_connection)))
-                else localeJobsWithStatus.postValue(NetworkState.OnSuccess(cashedData))
+            jobsFlow().collect { cashedData ->
+                if (cashedData.isEmpty()) setJobStateToFailure(context.getString(R.string.no_connection))
+                else setJobStateToSuccess(cashedData)
             }
         }
     }
+
+    private fun setJobStateToFailure(message: String) =
+        localeJobsWithStatus.postValue(NetworkState.OnFailure(message))
+
+    private fun setJobStateToSuccess(cashedJobs: List<JobsResponseItem>) =
+        localeJobsWithStatus.postValue(NetworkState.OnSuccess(cashedJobs))
+
+
+    private suspend fun cashResponse(body: JobsResponse?) =
+        body?.let { jobsList ->
+            withContext(Dispatchers.IO) {
+                jobsDao.add(jobsList)
+                jobsFlow().collect { cashedJobs ->
+                    setJobStateToSuccess(cashedJobs)
+                }
+            }
+        }
 
 
     private fun isConnected(): Boolean {

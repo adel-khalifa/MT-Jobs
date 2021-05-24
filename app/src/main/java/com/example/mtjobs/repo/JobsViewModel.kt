@@ -24,7 +24,7 @@ class JobsViewModel(app: Application, private val jobsRepo: JobsRepoImpl) : Andr
     val favoritesLiveData: MutableLiveData<List<FavoriteItem>> = MutableLiveData()
 
     private fun loadFavorites() = viewModelScope.launch {
-        jobsRepo.allFavoritesFlow().collect {
+        jobsRepo.favoritesFlow().collect {
             favoritesLiveData.value = it
         }
     }
@@ -32,13 +32,14 @@ class JobsViewModel(app: Application, private val jobsRepo: JobsRepoImpl) : Andr
 
     fun toggleIsFavorite(favoriteItem: FavoriteItem) = viewModelScope.launch {
 
-        jobsRepo.allFavoritesFlow().collect { favFlow ->
+        jobsRepo.favoritesFlow().collect { favFlow ->
             if (favFlow.any { it.id == favoriteItem.id })
                 jobsRepo.deleteFromFavorites(favoriteItem)
             else jobsRepo.addToFavorites(favoriteItem)
 
         }
-        jobsRepo.allFavoritesFlow().collect { favoritesLiveData.postValue(it) }
+
+        jobsRepo.favoritesFlow().collect { favoritesLiveData.postValue(it) }
 
     }
 

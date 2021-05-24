@@ -5,8 +5,6 @@ sealed class NetworkState<T>(
     val failureMessage: String? = null
 ) {
 
-    // we use this class to determine our response state
-    // later on we can read data by passing the body of response to base sealed class
 
     class OnSuccess<T>(responseBody: T) : NetworkState<T>(bodyData = responseBody)
 

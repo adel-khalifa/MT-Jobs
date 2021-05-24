@@ -8,9 +8,9 @@ import retrofit2.http.Query
 
 interface JobsApi {
 
-
-    @GET("/positions.json?description=api")
-    suspend fun getJobs(): Response<JobsResponse>
-
+    @GET("/positions.json")
+    suspend fun getJobs(
+        @Query("description") api : String = "api"
+    ): Response<JobsResponse>
 
 }
