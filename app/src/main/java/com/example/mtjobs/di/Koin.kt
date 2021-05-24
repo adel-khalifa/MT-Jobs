@@ -3,6 +3,7 @@ package com.example.mtjobs.di
 import android.app.Application
 import android.content.Context
 import androidx.room.Room
+import com.example.mtjobs.data.local.FavoriteDao
 import com.example.mtjobs.data.local.JobsDao
 import com.example.mtjobs.data.local.JobsDataBase
 import com.example.mtjobs.data.remote.JobsApi
@@ -46,8 +47,13 @@ val databaseModule = module {
         return database.jobsDao
     }
 
+    fun provideFavoriteDao(database: JobsDataBase): FavoriteDao {
+        return database.favoriteDao
+    }
+
     single { provideDatabase(androidApplication()) }
     single { provideJobsDao(get()) }
+    single { provideFavoriteDao(get()) }
 }
 
 val networkModule = module {
@@ -80,10 +86,10 @@ val networkModule = module {
 
 val repositoryModule = module {
 
-    fun provideJobsRepo(api: JobsApi, context: Context, dao: JobsDao): JobsRepoImpl {
-        return JobsRepoImpl(api, context, dao)
+    fun provideJobsRepo(api: JobsApi, context: Context, dao: JobsDao,favoriteDao: FavoriteDao): JobsRepoImpl {
+        return JobsRepoImpl(api, context, dao,favoriteDao)
     }
-    single { provideJobsRepo(get(), androidContext(), get()) }
+    single { provideJobsRepo(get(), androidContext(), get(),get()) }
 
 }
 

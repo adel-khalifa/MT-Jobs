@@ -9,12 +9,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mtjobs.R
+import com.example.mtjobs.data.models.FavoriteItem
 import com.example.mtjobs.data.models.JobsResponseItem
 import com.example.mtjobs.databinding.ItemJobBinding
 import kotlinx.android.synthetic.main.item_job.view.*
 
 class JobsAdapter : RecyclerView.Adapter<JobsAdapter.JobsViewHolder>() {
     private lateinit var listener: OnJobClickListener
+    private var favList = listOf<FavoriteItem>()
+
+    fun setFavorites(favorites : List<FavoriteItem>){
+        favList= favorites
+        notifyDataSetChanged()
+    }
 
     inner class JobsViewHolder(view: View) : RecyclerView.ViewHolder(view)
 
@@ -59,12 +66,17 @@ class JobsAdapter : RecyclerView.Adapter<JobsAdapter.JobsViewHolder>() {
 
     override fun onBindViewHolder(holder: JobsAdapter.JobsViewHolder, position: Int) {
 
-        asyncListDiffer.currentList.let {
-            val jobModel = it[position]
+        asyncListDiffer.currentList.let {jobs ->
+            val jobModel = jobs[position]
 
             holder.itemView.apply {
                 item_job_company_name.text = jobModel.company
                 item_job_title.text = jobModel.title
+                if(favList.any { it.id==jobModel.id }){
+                    job_item_ic_favorite.setImageResource(R.drawable.ic_baseline_favorite_24)
+                }else{
+                    job_item_ic_favorite.setImageResource(R.drawable.ic_un_favorite_border_24)
+                }
 
 
 
@@ -72,8 +84,11 @@ class JobsAdapter : RecyclerView.Adapter<JobsAdapter.JobsViewHolder>() {
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(job_item_iv_image)
 
+                job_item_ic_favorite.setOnClickListener{
+                    listener.onFavoriteClick(jobModel.id)
+                }
                 setOnClickListener {
-                    listener.onJobClick(position)
+                    listener.onJobClick(jobModel.id)
                 }
             }
 
@@ -82,7 +97,8 @@ class JobsAdapter : RecyclerView.Adapter<JobsAdapter.JobsViewHolder>() {
     }
 
     interface OnJobClickListener {
-        fun onJobClick(position: Int)
+        fun onJobClick(jobId: String)
+        fun onFavoriteClick(jobId: String)
     }
 
     fun setOnJobClickListener(onJobClickListener: OnJobClickListener) {

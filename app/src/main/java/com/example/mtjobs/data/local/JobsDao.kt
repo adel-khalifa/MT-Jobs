@@ -14,5 +14,5 @@ interface JobsDao {
     fun findAll(): List<JobsResponseItem>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun add(jobs: List<JobsResponseItem>)
+    suspend fun add(jobs: List<JobsResponseItem>)
 }

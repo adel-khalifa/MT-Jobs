@@ -8,5 +8,8 @@
     <string name="job_search_hint">job title OR company name</string>
     <string name="start">Start</string>
     <string name="no_connection">Check Your Internet connection</string>
+    <string name="apply">Apply</string>
+    <string name="loading">Loading</string>
+    <string name="success">Success</string>
 
 </resources>

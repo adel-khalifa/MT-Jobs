@@ -10,13 +10,14 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mtjobs.R
 import com.example.mtjobs.adapters.JobsAdapter
+import com.example.mtjobs.data.models.FavoriteItem
 import com.example.mtjobs.databinding.FragmentListBinding
 import com.example.mtjobs.repo.JobsViewModel
 import com.example.mtjobs.utils.NetworkState
 import org.koin.android.viewmodel.ext.android.sharedViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
 
-class ListFragment : Fragment(R.layout.fragment_list) {
+class ListFragment : Fragment(R.layout.fragment_list), JobsAdapter.OnJobClickListener {
     private lateinit var binding: FragmentListBinding
     private lateinit var navController: NavController
     private lateinit var jobsAdapter: JobsAdapter
@@ -36,36 +37,51 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         jobsViewModel.cashedJobs.observe(viewLifecycleOwner) { cashedStatus ->
             when (cashedStatus) {
                 is NetworkState.OnLoading -> {
-                    binding.listFragmentErrorTv.text = "Loading"
-                binding.wipeRefreshLayout.isRefreshing  =true
+                    binding.listFragmentErrorTv.text = getString(R.string.loading)
+                    binding.wipeRefreshLayout.isRefreshing = true
                 }
                 is NetworkState.OnFailure -> {
                     binding.wipeRefreshLayout.isRefreshing = false
 
                     binding.listFragmentErrorTv.text =
-                        cashedStatus.failureMessage + " ***** "
+                        cashedStatus.failureMessage
                 }
                 is NetworkState.OnSuccess -> {
                     binding.wipeRefreshLayout.isRefreshing = false
 
-                    binding.listFragmentErrorTv.text = "success"
-                    binding.listFragmentErrorTv.setTextColor(resources.getColor(R.color.green,resources.newTheme()))
+                    binding.listFragmentErrorTv.text = getString(R.string.success)
+                    binding.listFragmentErrorTv.setTextColor(
+                        resources.getColor(
+                            R.color.green,
+                            resources.newTheme()
+                        )
+                    )
                     jobsAdapter.asyncListDiffer.submitList(cashedStatus.bodyData?.toList())
                 }
 
             }
         }
-
-        /////
-        binding.icic.setOnClickListener { navController.navigate(R.id.detailsFragment) }
+        jobsViewModel.favoritesLiveData.observe(viewLifecycleOwner) {
+            jobsAdapter.setFavorites(it)
+        }
 
     }
 
     private fun initRecyclerView() {
         jobsAdapter = JobsAdapter()
+        jobsAdapter.setOnJobClickListener(this)
         binding.listRv.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         binding.listRv.adapter = jobsAdapter
+    }
+
+
+    override fun onJobClick(jobId: String) {
+        navController.navigate(ListFragmentDirections.actionListFragmentToDetailsFragment(jobId))
+    }
+
+    override fun onFavoriteClick(jobId: String) {
+        jobsViewModel.toggleIsFavorite(FavoriteItem(jobId))
     }
 
 

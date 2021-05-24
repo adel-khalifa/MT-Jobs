@@ -27,5 +27,9 @@
         android:id="@+id/detailsFragment"
         android:name="com.example.mtjobs.ui.fragments.DetailsFragment"
         android:label="fragment_details"
-        tools:layout="@layout/fragment_details" />
+        tools:layout="@layout/fragment_details" >
+        <argument
+            android:name="jobId"
+            app:argType="string" />
+    </fragment>
 </navigation>

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="?attr/colorPrimaryVariant"
     android:layout_height="match_parent"
     tools:context=".ui.fragments.SplashFragment">
 
@@ -12,15 +13,20 @@
         android:layout_height="wrap_content"
         android:text="@string/welcome_txt"
         android:textAlignment="center"
-        android:textSize="24sp"
+        android:textSize="46sp"
+        android:textColor="?attr/colorOnPrimary"
+        android:textStyle="bold"
+        android:layout_margin="@dimen/default_content_margin_of_layout"
         app:layout_constraintBottom_toTopOf="@id/splash_btn_start"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/splash_btn_start"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/start"
+        android:layout_marginHorizontal="@dimen/default_content_margin_of_layout"
+        android:background="?attr/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
